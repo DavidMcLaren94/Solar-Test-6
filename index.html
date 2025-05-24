@@ -1,0 +1,97 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>The Natural Energy Company - Solar Savings Calculator</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  body { font-family: 'Times New Roman', Arial, sans-serif; background: #ffffff; color: #32624a; margin: 0; }
+  header { background: #32624a; color: #ffffff; padding: 10px; text-align: center; }
+  header img { height: 50px; }
+  main { padding: 20px; max-width: 800px; margin: auto; }
+  label { display: block; margin-top: 10px; }
+  input { width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; }
+  button { background: #60894b; color: #fff; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; margin-top: 15px; }
+  button:hover { background: #4b7f89; }
+  #results { background: #f0f0f0; margin-top: 20px; padding: 15px; border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<header>
+  <img src="https://raw.githubusercontent.com/DavidMcLaren94/Solar-Test-3/main/NEC%20Logo%20Transparent.png" alt="The Natural Energy Company">
+  <h1>Solar Savings Calculator</h1>
+</header>
+
+<main>
+  <label>Postcode:</label>
+  <input type="text" id="postcode">
+  <label>Roof Width (m):</label>
+  <input type="number" id="roofWidth" step="0.1">
+  <label>Roof Height (m):</label>
+  <input type="number" id="roofHeight" step="0.1">
+  <label>Roof Angle (°):</label>
+  <input type="number" id="roofAngle">
+  <label>Degrees off South (°):</label>
+  <input type="number" id="azimuth">
+  <label>Current Electrical Usage (kWh/year):</label>
+  <input type="number" id="electricUsage">
+  <label>Heat Pump Usage (kWh/year):</label>
+  <input type="number" id="heatPumpUsage">
+  <label>Electricity Cost (£/kWh):</label>
+  <input type="number" id="electricityCost" value="0.30" step="0.01">
+  <button onclick="calculateSolar()">Calculate Savings</button>
+  <div id="results"></div>
+</main>
+
+<script>
+function calculateSolar() {
+  const panelWidth = 1.134;
+  const panelHeight = 1.764;
+  const panelArea = panelWidth * panelHeight;
+  const panelPower = 400;
+
+  const roofWidth = parseFloat(document.getElementById('roofWidth').value);
+  const roofHeight = parseFloat(document.getElementById('roofHeight').value);
+  const roofAngle = parseFloat(document.getElementById('roofAngle').value);
+  const azimuth = parseFloat(document.getElementById('azimuth').value);
+  const postcode = document.getElementById('postcode').value;
+  const electricUsage = parseFloat(document.getElementById('electricUsage').value);
+  const heatPumpUsage = parseFloat(document.getElementById('heatPumpUsage').value);
+  const electricityCost = parseFloat(document.getElementById('electricityCost').value);
+
+  const roofArea = roofWidth * roofHeight;
+  const numPanels = Math.floor(roofArea / panelArea);
+  const systemSize = (numPanels * panelPower) / 1000;
+
+  if (systemSize <= 0) {
+    alert('No panels fit on this roof. Please check dimensions.');
+    return;
+  }
+
+  const avgIrradiance = 1000;
+  const orientationFactor = Math.cos(azimuth * Math.PI / 180) * Math.cos((roofAngle - 30) * Math.PI / 180);
+  const adjustedIrradiance = avgIrradiance * orientationFactor;
+  const annualGen = systemSize * adjustedIrradiance;
+  const totalUsage = electricUsage + heatPumpUsage;
+  const offsetPercent = Math.min((annualGen / totalUsage) * 100, 100).toFixed(1);
+  const estimatedSavings = annualGen * electricityCost;
+  const installationCost = systemSize * 900;
+  const paybackYears = (installationCost / estimatedSavings).toFixed(1);
+
+  document.getElementById('results').innerHTML = `
+    <h3>Results</h3>
+    <p>Number of panels: ${numPanels}</p>
+    <p>System size: ${systemSize.toFixed(1)} kWp</p>
+    <p>Estimated annual generation: ${annualGen.toFixed(0)} kWh</p>
+    <p>Offset of total usage: ${offsetPercent}%</p>
+    <p>Estimated annual savings: £${estimatedSavings.toFixed(0)}</p>
+    <p>Estimated installation cost: £${installationCost.toFixed(0)}</p>
+    <p>Estimated payback period: ${paybackYears} years</p>
+  `;
+}
+</script>
+
+</body>
+</html>
